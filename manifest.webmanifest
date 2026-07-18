@@ -1,0 +1,19 @@
+{
+  "name": "سعودي إنجاز — مركز معتمد لمعاملات السفارة السعودية",
+  "short_name": "سعودي إنجاز",
+  "description": "مركز معتمد في عمّان لإنجاز تأشيرات العمل وتصديق الشهادات والاعتماد المهني.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B1220",
+  "theme_color": "#1E3A8A",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/assets/img/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
