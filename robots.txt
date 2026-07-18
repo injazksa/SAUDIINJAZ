@@ -1,4 +1,4 @@
-# سعودي إنجاز — robots.txt
+# إنجاز السعودية — robots.txt
 User-agent: *
 Allow: /
 

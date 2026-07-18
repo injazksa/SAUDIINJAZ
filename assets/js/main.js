@@ -1,7 +1,7 @@
 (function () {
   'use strict';
   var CONFIG = {
-    brand: 'سعودي إنجاز',
+    brand: 'إنجاز السعودية',
     phone: '+962789881009',
     whatsapp: '962789881009',
     email: 'info@saudiinjaz.com',
