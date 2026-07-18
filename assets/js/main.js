@@ -97,7 +97,57 @@
     input.addEventListener('keydown', function (e) { if (e.key === 'Escape') { box.classList.remove('show'); input.blur(); } });
   }
 
-  window.printPage = function () { window.print(); };
+  /* ————— الطباعة: تبني مستنداً نظيفاً مضموناً على أي جهاز ————— */
+  window.printPage = function () {
+    var main = document.getElementById('main');
+    if (!main) { window.print(); return; }
+
+    // عنوان الصفحة (من H1)
+    var h1 = main.querySelector('h1');
+    var pageTitle = h1 ? h1.textContent.trim() : document.title;
+
+    // اجمع الأقسام: كل عنوان H2/H3 مع قائمة الوثائق التي تليه
+    var html = '';
+    var blocks = main.querySelectorAll('h2, h3, .doc, .callout p, .lede');
+    blocks.forEach(function (el) {
+      var t = el.textContent.trim();
+      if (!t) return;
+      if (el.tagName === 'H2') html += '<h2>' + t + '</h2>';
+      else if (el.tagName === 'H3') html += '<h3>' + t + '</h3>';
+      else if (el.classList.contains('lede')) html += '<p class="lede">' + t + '</p>';
+      else if (el.classList.contains('doc')) html += '<div class="item"><span>&#10003;</span><p>' + t + '</p></div>';
+      else html += '<p class="note">' + t + '</p>';
+    });
+
+    var C = window.INJAZ || {};
+    var doc = '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>' + pageTitle + '</title>' +
+      '<style>' +
+      '@page{size:A4;margin:18mm 16mm}' +
+      '*{margin:0;padding:0;box-sizing:border-box;font-family:"Almarai",Arial,sans-serif}' +
+      'body{color:#111;line-height:1.7;font-size:12pt}' +
+      '.head{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2pt solid #111;padding-bottom:10pt;margin-bottom:16pt}' +
+      '.head .b{font-size:16pt;font-weight:800}.head .t{font-size:9pt;color:#444;margin-top:3pt}' +
+      '.head .c{font-size:9pt;text-align:left;line-height:1.7;color:#333}' +
+      'h1{font-size:18pt;margin-bottom:10pt}' +
+      'h2{font-size:14pt;margin:14pt 0 6pt;padding-bottom:3pt;border-bottom:1pt solid #ccc}' +
+      'h3{font-size:12.5pt;margin:10pt 0 4pt;color:#3D4A22}' +
+      '.lede{font-size:11.5pt;color:#333;margin-bottom:8pt}' +
+      '.note{font-size:10.5pt;color:#555;background:#f5f5ef;padding:6pt 9pt;border-right:3pt solid #C4A24C;margin:6pt 0}' +
+      '.item{display:flex;gap:7pt;align-items:flex-start;border:0.75pt solid #ccc;border-radius:4pt;padding:6pt 9pt;margin-bottom:5pt;page-break-inside:avoid}' +
+      '.item span{color:#4A6B1E;font-weight:800;flex-shrink:0}.item p{font-size:11pt}' +
+      '.foot{margin-top:18pt;padding-top:8pt;border-top:1pt solid #999;font-size:8.5pt;color:#666;text-align:center}' +
+      '</style></head><body>' +
+      '<div class="head"><div><div class="b">إنجاز السعودية</div><div class="t">مركز معتمد لإنجاز معاملات السفارة السعودية</div></div>' +
+      '<div class="c">الدوار الأول — جبل عمّان، عمّان<br>هاتف: ' + (C.phone || '') + '<br>saudiinjaz.com</div></div>' +
+      '<h1>' + pageTitle + '</h1>' + html +
+      '<div class="foot">هذه القائمة إرشادية عامة وقد تتغيّر المتطلبات حسب مسمّى التأشيرة. للتأكد من تفاصيل حالتك تواصل مع إنجاز السعودية · saudiinjaz.com</div>' +
+      '</body></html>';
+
+    var w = window.open('', '_blank');
+    if (!w) { window.print(); return; }
+    w.document.open(); w.document.write(doc); w.document.close();
+    w.onload = function () { setTimeout(function () { w.focus(); w.print(); }, 350); };
+  };
 
   function initReveal() {
     if (!('IntersectionObserver' in window)) return;

@@ -4,8 +4,8 @@
   "description": "مركز معتمد في عمّان لإنجاز تأشيرات العمل وتصديق الشهادات والاعتماد المهني.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#06101F",
-  "theme_color": "#12294A",
+  "background_color": "#14200E",
+  "theme_color": "#3D4A22",
   "lang": "ar",
   "dir": "rtl",
   "icons": [
