@@ -70,6 +70,7 @@
     { t: 'تصديق الشهادات', d: 'من الجامعة حتى السفارة السعودية', u: '/attestation.html', k: 'تصديق مصادقة شهادة جامعية وثائق خارجية' },
     { t: 'الاعتماد المهني QVP', d: 'التحقق المهني والفحص المهني', u: '/professional.html', k: 'اعتماد مهني qvp فحص تحقق مهندس طبيب' },
     { t: 'الأوراق المطلوبة', d: 'قائمة شاملة حسب الحالة', u: '/required-docs.html', k: 'اوراق وثائق مستندات مطلوبة' },
+    { t: 'جهّز ملفك — أداة تفاعلية', d: 'اعرف أوراقك حسب مهنتك واطبعها', u: '/checklist.html', k: 'جهز ملفك اداة قائمة تحقق اوراقي مهنتي checklist' },
     { t: 'خدمات الشركات', d: 'باقات الاستقدام للمؤسسات', u: '/companies.html', k: 'شركات مؤسسات استقدام جماعي باقات موظفين' },
     { t: 'مكتبنا في عمّان', d: 'الدوار الأول — جبل عمّان', u: '/office-amman.html', k: 'مكتب عنوان موقع الدوار الاول جبل عمان زيارة' },
     { t: 'كيف نعمل', d: 'آلية العمل خطوة بخطوة', u: '/how-we-work.html', k: 'آلية خطوات مراحل عمل' },
@@ -108,14 +109,26 @@
 
     // اجمع الأقسام: كل عنوان H2/H3 مع قائمة الوثائق التي تليه
     var html = '';
-    var blocks = main.querySelectorAll('h2, h3, .doc, .callout p, .lede');
+    // إن كانت صفحة الأداة وفيها نتيجة، اطبع القائمة الشخصية فقط
+    var res = document.getElementById('result');
+    var scope = (res && res.classList.contains('show')) ? res : main;
+    if (scope === res) {
+      var rt = document.getElementById('resTitle');
+      if (rt) pageTitle = rt.textContent.trim();
+    }
+
+    var blocks = scope.querySelectorAll('h2, h3, .doc, .check, .res__group, .callout p, .lede');
     blocks.forEach(function (el) {
       var t = el.textContent.trim();
       if (!t) return;
-      if (el.tagName === 'H2') html += '<h2>' + t + '</h2>';
+      if (el.tagName === 'H2' && el.id !== 'resTitle') html += '<h2>' + t + '</h2>';
       else if (el.tagName === 'H3') html += '<h3>' + t + '</h3>';
+      else if (el.classList.contains('res__group')) html += '<h2>' + t + '</h2>';
       else if (el.classList.contains('lede')) html += '<p class="lede">' + t + '</p>';
-      else if (el.classList.contains('doc')) html += '<div class="item"><span>&#10003;</span><p>' + t + '</p></div>';
+      else if (el.classList.contains('doc') || el.classList.contains('check')) {
+        var mark = el.classList.contains('done') ? '&#10003;' : '&#9744;';
+        html += '<div class="item"><span>' + mark + '</span><p>' + t + '</p></div>';
+      }
       else html += '<p class="note">' + t + '</p>';
     });
 
@@ -165,7 +178,109 @@
     els.forEach(function (el) { io.observe(el); });
   }
 
-  function init() { bindConfig(); initNav(); initTop(); initFloats(); initSearch(); initReveal(); bindConfig(); }
+  /* ————— أداة «جهّز ملفك» ————— */
+  function initChecklist() {
+    var raw = document.getElementById('ckData');
+    var box = document.getElementById('result');
+    if (!raw || !box) return;
+
+    var D;
+    try { D = JSON.parse(raw.textContent); } catch (e) { return; }
+
+    var picks = document.querySelectorAll('.pick');
+    var optF = document.getElementById('optFemale');
+    var list = document.getElementById('resList');
+    var title = document.getElementById('resTitle');
+    var count = document.getElementById('resCount');
+    var bar = document.getElementById('resBar');
+    var current = null, female = false;
+
+    var TICK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+    function row(txt) {
+      return '<div class="check" role="checkbox" tabindex="0" aria-checked="false">' +
+             '<span class="check__b">' + TICK + '</span>' +
+             '<span class="check__t">' + txt + '</span></div>';
+    }
+
+    function tally() {
+      var all = list.querySelectorAll('.check');
+      var done = list.querySelectorAll('.check.done');
+      var pct = all.length ? Math.round(done.length / all.length * 100) : 0;
+      count.textContent = 'جهّزت ' + done.length + ' من ' + all.length;
+      bar.style.width = pct + '%';
+    }
+
+    function bindRows() {
+      list.querySelectorAll('.check').forEach(function (el) {
+        function toggle() {
+          var on = el.classList.toggle('done');
+          el.setAttribute('aria-checked', on ? 'true' : 'false');
+          tally();
+        }
+        el.addEventListener('click', toggle);
+        el.addEventListener('keydown', function (e) {
+          if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); }
+        });
+      });
+      tally();
+    }
+
+    function render() {
+      if (!current) return;
+      var cat = null;
+      D.cats.forEach(function (c) { if (c.id === current) cat = c; });
+      if (!cat) return;
+
+      title.textContent = 'قائمة أوراقك — ' + cat.name;
+
+      var h = '<div class="res__group">وثائق أساسية لكل معاملة</div>';
+      D.common.forEach(function (t) { h += row(t); });
+
+      h += '<div class="res__group">مطلوب إضافةً لفئتك: ' + cat.name + '</div>';
+      cat.extra.forEach(function (t) { h += row(t); });
+
+      if (female) {
+        h += '<div class="res__group">متطلبات إضافية للإناث</div>' + row(D.female);
+      }
+      if (cat.note) {
+        h += '<div class="callout callout--warn" style="margin-top:1.2rem"><p>' + cat.note + '</p></div>';
+      }
+
+      list.innerHTML = h;
+      bindRows();
+      box.classList.add('show');
+      bindConfig();
+    }
+
+    picks.forEach(function (b) {
+      b.addEventListener('click', function () {
+        picks.forEach(function (x) { x.classList.remove('on'); });
+        b.classList.add('on');
+        current = b.getAttribute('data-cat');
+        render();
+        setTimeout(function () {
+          box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 120);
+      });
+    });
+
+    if (optF) {
+      optF.addEventListener('click', function () {
+        female = !female;
+        optF.classList.toggle('on', female);
+        if (current) render();
+      });
+    }
+  }
+
+  function initPrint() {
+    document.querySelectorAll('[data-print]').forEach(function (btn) {
+      btn.addEventListener('click', function () { window.printPage(); });
+    });
+  }
+
+  function init() { bindConfig(); initNav(); initTop(); initFloats(); initSearch(); initReveal(); initPrint(); initChecklist(); bindConfig(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 })();

@@ -9,6 +9,8 @@
 - [الأوراق المطلوبة](https://saudiinjaz.com/required-docs.html): قوائم حسب فئة المهنة.
 - [خدمات الشركات](https://saudiinjaz.com/companies.html): استقدام جماعي وتصديق بالجملة.
 
+- [جهّز ملفك](https://saudiinjaz.com/checklist.html): أداة تفاعلية تحدّد الأوراق المطلوبة حسب المهنة.
+
 ## معلومات
 - [من نحن](https://saudiinjaz.com/about.html)
 - [الأسئلة الشائعة](https://saudiinjaz.com/faq.html)
